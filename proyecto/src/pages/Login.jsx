@@ -1,17 +1,35 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '../Button'
+import { useAuth } from '../contexts/AuthContext'
 import './auth.css'
 
 export default function Login() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
+    const { login } = useAuth();
 
     function handleSubmit(e) {
-        e.preventDefault()
-        // Aquí iría la llamada real al backend
-        console.log('Login simulated', { email, password })
-        alert('Inicio de sesión simulado')
+        e.preventDefault();
+        setError('');
+        fetch('http://localhost:3000/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        })
+            .then(res => {
+                if (res.status === 200) {
+                    const userData = { email };
+                    login(userData);
+                    alert('Inicio de sesión exitoso');
+                    navigate('/', { replace: true });
+                } else {
+                    setError('Credenciales inválidas. Verifica tu email y contraseña.');
+                }
+            })
+            .catch(() => setError('No se pudo conectar al servidor.'));
     }
 
     return (
@@ -41,6 +59,7 @@ export default function Login() {
                             required
                         />
                     </div>
+                    {error && <div className="auth-error">{error}</div>}
                     <div className="form-actions">
                         <Button type="submit" className="btn-primary">Entrar</Button>
                     </div>

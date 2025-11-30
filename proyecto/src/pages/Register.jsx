@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '../Button'
 import './auth.css'
 
@@ -7,12 +7,41 @@ export default function Register() {
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const navigate = useNavigate();
 
     function handleSubmit(e) {
-        e.preventDefault()
-        // Aquí iría la llamada real al backend para crear el usuario
-        console.log('Register simulated', { name, email, password })
-        alert('Registro simulado')
+        e.preventDefault();
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        const raw = JSON.stringify({
+            email,
+            password,
+            name
+        });
+
+        fetch("http://localhost:3000/register", {
+            method: "POST",
+            headers: myHeaders,
+            body: raw,
+            redirect: "follow"
+        })
+            .then((response) => {
+                if (response.status === 200) {
+                    alert("Registro exitoso");
+                    navigate("/login", { replace: true });
+                } else if (response.status === 400) {
+                    return response.json().then(result => {
+                        alert(result.error || "Datos inválidos");
+                    });
+                } else {
+                    throw new Error("Error inesperado: " + response.status);
+                }
+            })
+            .catch((error) => {
+                alert("No se pudo conectar al servidor");
+                console.error(error);
+            });
     }
 
     return (

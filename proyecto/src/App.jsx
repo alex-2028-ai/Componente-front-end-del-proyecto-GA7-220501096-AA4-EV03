@@ -5,8 +5,11 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Products from './pages/Products'
 import Cart from './pages/Cart'
+import Account from './pages/Account'
+import Orders from './pages/Orders'
 import { CartProvider } from './contexts/CartContext'
 import { useCart } from './contexts/CartContext'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 
 function Home() {
   return (
@@ -46,26 +49,29 @@ function Home() {
 function App() {
   return (
     <BrowserRouter>
-      <CartProvider>
-        <Header />
-
-        <main style={{ padding: 12 }}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-          </Routes>
-        </main>
-      </CartProvider>
+      <AuthProvider>
+        <CartProvider>
+          <Header />
+          <main style={{ padding: 12 }}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/products" element={<Products />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/account" element={<Account />} />
+              <Route path="/orders" element={<Orders />} />
+            </Routes>
+          </main>
+        </CartProvider>
+      </AuthProvider>
     </BrowserRouter>
   )
 }
 
 function Header() {
-  // use hook inside component so we can show badge
   const { totalCount } = useCart() || { totalCount: 0 }
+  const { user, logout } = useAuth() || {};
 
   return (
     <header className="site-header">
@@ -80,7 +86,16 @@ function Header() {
       </nav>
 
       <div className="site-actions">
-        <Link to="/login">Cuenta</Link>
+        {user ? (
+          <>
+            <span>Hola, {user.name || user.email}</span>
+            <Link to="/account">Mi cuenta</Link>
+            <Link to="/orders">Mis compras</Link>
+            <Button onClick={logout} className="btn-secondary">Cerrar sesión</Button>
+          </>
+        ) : (
+          <Link to="/login">Cuenta</Link>
+        )}
         <Link to="/cart">Carrito <span className="cart-badge">{totalCount}</span></Link>
       </div>
     </header>
